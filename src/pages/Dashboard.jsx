@@ -10,15 +10,17 @@ export default function Dashboard() {
   const [tasks, setTasks] = useState([])
   const [projects, setProjects] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
   useEffect(() => {
     Promise.all([api.getTasks(), api.getProjects()])
       .then(([taskData, projectData]) => { setTasks(taskData); setProjects(projectData) })
+      .catch(() => setError('We could not load your workspace data. Check that the API is running.'))
       .finally(() => setLoading(false))
   }, [])
 
   const completed = tasks.filter((task) => task.status === 'Done').length
-  const inProgress = tasks.filter((task) => task.status === 'In Progress').length
+  const inProgress = tasks.filter((task) => task.status === 'In progress').length
   const completion = tasks.length ? Math.round((completed / tasks.length) * 100) : 0
 
   return (
@@ -36,10 +38,11 @@ export default function Dashboard() {
       </section>
       <section className="dashboard-columns">
         <div className="card task-preview">
-          <div className="card-heading"><div><h3>Recent tasks</h3><p>Your latest tasks, all in one place.</p></div><Link to="/task" className="text-link">View all <ArrowRight size={14} /></Link></div>
+          <div className="card-heading"><div><h3>Recent tasks</h3><p>Your latest tasks, all in one place.</p></div><Link to="/tasks" className="text-link">View all <ArrowRight size={14} /></Link></div>
+          {error && <div className="form-error" role="alert">{error}</div>}
           {loading ? <div className="loading-state">Loading your tasks…</div> : <div className="task-list">
             {tasks.slice(0, 4).map((task) => <Link to={`/tasks/${task.id}`} className="task-row" key={task.id}><div className="task-row-check"><span className={`fake-check ${task.status === 'Done' ? 'checked' : ''}`}>{task.status === 'Done' ? '✓' : ''}</span></div><div className="task-row-main"><strong>{task.title}</strong><span>{projects.find((p) => p.id === task.projectId)?.name || 'Unassigned project'}</span></div><PriorityBadge priority={task.priority} /><StatusBadge status={task.status} /></Link>)}
-            {tasks.length === 0 && <div className="empty-state">No tasks yet. Create your first task.</div>}
+            {!error && tasks.length === 0 && <div className="empty-state">No tasks yet. Create your first task.</div>}
           </div>}
           <Link className="add-task-row" to="/tasks/new"><Plus size={16} /> Add a new task</Link>
         </div>
