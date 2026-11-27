@@ -14,7 +14,8 @@ export default function TaskForm({ initialValues, projects, onSubmit, submitLabe
 
   async function handleSubmit(event) {
     event.preventDefault()
-    if (form.title.length === 0) {
+    const title = form.title.trim()
+    if (title.length === 0) {
       setError('A task title is required.')
       return
     }
@@ -23,7 +24,7 @@ export default function TaskForm({ initialValues, projects, onSubmit, submitLabe
       return
     }
     setError('')
-    await onSubmit(form)
+    await onSubmit({ ...form, title, description: (form.description || '').trim(), assignee: (form.assignee || '').trim() })
   }
 
   return (
